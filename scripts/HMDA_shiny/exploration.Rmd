@@ -1,0 +1,75 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+HMDA_WA_all <- read_csv("../../data/state_WA.csv")
+```
+```{r}
+HMDA_WA <- HMDA_WA_all %>% 
+    subset(select = c(activity_year, 
+                      lei, 
+                      `derived_msa-md`, 
+                      state_code,
+                      county_code,
+                      census_tract,
+                      derived_loan_product_type,
+                      derived_dwelling_category,
+                      derived_race, 
+                      derived_sex,
+                      derived_ethnicity,
+                      applicant_age,
+                      action_taken, 
+                      loan_type, 
+                      loan_purpose,
+                      loan_amount,
+                      loan_to_value_ratio, 
+                      property_value, 
+                      occupancy_type,
+                      income, 
+                      business_or_commercial_purpose,
+                      tract_population, 
+                      tract_minority_population_percent)) %>%  
+    transform(property_value = as.numeric(property_value))
+
+```
+```{r}
+race = unique(HMDA_WA$derived_race)
+race= race[race != "White"]
+race
+```
+```{r}
+race_2 <- character()
+
+for (p in race) {
+    p = "other"
+    race_2 <- append(race_2, p)
+}
+race_2
+```
+
+
+```{r}
+HMDA_WA %>% 
+    mutate(derived_race = if_else(derived_race != "Asian", "other", "Asian")) %>% 
+    ggplot(aes(x = loan_amount, after_stat(density), color = derived_race, fill = derived_race)) +
+    geom_histogram(alpha=0.5, position = "identity", bins = 50, size=1) +
+    scale_color_brewer(palette = "Dark2") +
+    scale_fill_brewer(palette = "Dark2") +
+    scale_x_log10() 
+
+```
+```{r}
+HMDA_WA %>% 
+    filter(lei == "54930021WPEXNHYZUL09", 
+           county_code == 53061) %>% 
+    mutate(lei = if_else(lei != "54930021WPEXNHYZUL09", "other", "54930021WPEXNHYZUL09"), 
+           county_code =if_else(county_code != 53061, 1, 53061)) %>%
+   
+```
+
