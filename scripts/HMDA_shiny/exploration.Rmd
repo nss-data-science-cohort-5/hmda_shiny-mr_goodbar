@@ -8,6 +8,12 @@ This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute
 Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
 
 ```{r}
+library(tidyverse)
+library(plotly)
+```
+
+
+```{r}
 HMDA_WA_all <- read_csv("../../data/state_WA.csv")
 ```
 ```{r}
@@ -71,5 +77,85 @@ HMDA_WA %>%
     mutate(lei = if_else(lei != "54930021WPEXNHYZUL09", "other", "54930021WPEXNHYZUL09"), 
            county_code =if_else(county_code != 53061, 1, 53061)) %>%
    
+```
+Plot by age
+
+
+```{r}
+ggplotly(HMDA_WA %>% 
+    mutate(applicant_age = if_else(applicant_age != "55-64", "other", "55-64")) %>%
+    ggplot(aes(x = applicant_age)) +
+    geom_bar() +
+    labs(title = "Count of Loan Application by Age") +
+    xlab("Age") +
+    theme(plot.title = element_text(hjust = 0.5)))
+```
+```{r}
+ggplotly(HMDA_WA %>%
+    mutate(derived_race = if_else(derived_race != "White", "other", "White")) %>%
+    ggplot(aes(x = fct_inorder(derived_race))) +
+    geom_bar() +
+    labs(title = "Count of Loan Application by Race") +
+    xlab("Race") +
+    theme(plot.title = element_text(hjust = 0.5))) 
+   
+```
+
+```{r}
+ggplotly(HMDA_WA %>%
+    mutate(derived_sex = if_else(derived_sex != "Male", "other", "Male")) %>%
+    group_by(derived)
+    ggplot(aes(x = derived_sex)) +
+    geom_bar() +
+    labs(title = "Count of Loan Application by Sex") +
+    xlab("Sex") +
+    theme(plot.title = element_text(hjust = 0.5)))
+```
+
+```{r}
+
+HMDA_WA %>% 
+     mutate(lei = if_else(lei != "54930021WPEXNHYZUL09", "other", "54930021WPEXNHYZUL09"), 
+           county_code =if_else(county_code != 53061, 1, 53061)) %>%
+    filter(derived_race != "Race Not Available") %>% 
+    count(lei, derived_race) %>% 
+    pivot_wider(names_from = derived_race, values_from = n) %>% 
+    replace(is.na(.), 0) %>% 
+    mutate_if(is.numeric, function(x)(x/rowSums(.[2:9])) * 100) %>% 
+    pivot_longer(cols = "2 or more minority races":"Free Form Text Only") %>% 
+    filter(name != "Free Form Text Only") %>% 
+    arrange(desc(name))%>% 
+    ggplot(aes(y = fct_inorder(name), x = value, fill = lei))+
+    geom_col(position = "dodge") +
+    theme(axis.text.y = element_text(face = "bold"),
+          plot.title = element_text(hjust = 0.5)) +
+    scale_y_discrete(labels = function(x) str_wrap(x, width = 20)) +
+    labs(title = "Percent of Applicatinos by Race: Lei Vs. Competitors") + 
+    ylab("Race") +
+    xlab("Percent (%)") +
+    scale_y_discrete(limits=rev)
+```
+
+```{r}
+HMDA_WA %>% 
+    mutate(lei = if_else(lei != "54930021WPEXNHYZUL09", "other", "54930021WPEXNHYZUL09"), 
+           county_code =if_else(county_code != 53061, 1, 53061)) %>%
+    filter(!applicant_age %in% c("8888", "9999")) %>% 
+    count(lei, applicant_age) %>% 
+    pivot_wider(names_from = applicant_age, values_from = n) %>% 
+    relocate(">74", .after = "65-74")%>% 
+    replace(is.na(.), 0) %>% 
+    mutate_if(is.numeric, function(x)(x/rowSums(.[2:8]))*100) %>% 
+    pivot_longer(cols = "<25":">74") 
+```
+```{r}
+HMDA_WA %>% 
+    mutate(lei = if_else(lei != "54930021WPEXNHYZUL09", "other", "54930021WPEXNHYZUL09"), 
+           county_code =if_else(county_code != 53061, 1, 53061)) %>%
+    filter(derived_sex != "Sex Not Available") %>% 
+    count(lei, derived_sex) %>% 
+    pivot_wider(names_from = derived_sex, values_from = n) %>% 
+    mutate_if(is.numeric, function(x)(x/rowSums(.[2:4]))*100)%>% 
+    pivot_longer(cols = "Female":"Male")
 ```
 

@@ -32,22 +32,77 @@ shinyServer(function(input, output) {
         }
         
     })
+    group_filter <- reactive({
+        if(input$category == "Race") {
+            lei_county_filter() %>% 
+                filter(derived_race != "Race Not Available") %>% 
+                count(lei, derived_race) %>% 
+                pivot_wider(names_from = derived_race, values_from = n) %>% 
+                replace(is.na(.), 0) %>% 
+                mutate_if(is.numeric, function(x)(x/rowSums(.[2:9])) * 100) %>% 
+                pivot_longer(cols = "2 or more minority races":"Free Form Text Only") %>% 
+                filter(name != "Free Form Text Only")
+             
+        }
+        else if(input$category == "Age") {
+            lei_county_filter() %>% 
+                filter(!applicant_age %in% c("8888", "9999")) %>% 
+                count(lei, applicant_age) %>% 
+                pivot_wider(names_from = applicant_age, values_from = n) %>% 
+                replace(is.na(.), 0) %>% 
+                mutate_if(is.numeric, function(x)(x/rowSums(.[2:8]))*100) %>% 
+                pivot_longer(cols = "<25":"65-74") %>% 
+                mutate(name = fct_relevel(name,"<25", "25-34", "35-44", "45-54", "55-64", "65-74", ">74"))
+                
+        }
+        else if(input$category == "Sex") {
+            lei_county_filter() %>% 
+                filter(derived_sex != "Sex Not Available") %>% 
+                count(lei, derived_sex) %>% 
+                pivot_wider(names_from = derived_sex, values_from = n) %>% 
+                mutate_if(is.numeric, function(x)(x/rowSums(.[2:4]))*100)%>% 
+                pivot_longer(cols = "Female":"Male") %>% 
+                mutate(name = fct_relevel(name, "Female", "Male", "Joint"))
+        }
+    })
+    
+    cat_title_perc <- reactive({
+        if(input$category == "Age") {
+            labs(title = "Percent Applicant by Age: Lei Vs. Competitors")
+        }
+        else if(input$category == "Race") {
+            labs(title = "Percent Applicant by Race: Lei Vs. Competitors")
+        }
+        else if(input$category == "Sex") {
+            labs(title = "Percent Applicant by Sex: Lei Vs. Competitors")
+        }
+    })
+   
+    cat_ylab_perc <- reactive({
+        if(input$category == "Age") {
+            ylab("Age")
+        }
+        else if(input$category == "Race") {
+            ylab("Race")
+        }
+        else if(input$category == "Sex") {
+            ylab("Sex")
+        }
+    })
 
-    output$distPlot <- renderPlot({
-      if (input$race == "All") {
-          lei_county_filter() %>% 
-          filter(derived_sex == input$sex) %>% 
-          ggplot(aes(y = loan_amount, x = income)) +
-          geom_point()
-      }
-      else {
-          lei_county_filter() %>% 
-        filter(derived_race == input$race,
-               derived_sex == input$sex) %>%
-        ggplot(aes(y = loan_amount, x = income)) +
-        geom_point()
-        
-      }
+    output$barPlot <- renderPlot({
+      
+        group_filter() %>%  
+            arrange(desc(name)) %>% 
+            ggplot(aes(y = fct_inorder(name), x = value, fill = lei))+
+            geom_col(position = "dodge") +
+            theme(axis.text.y = element_text(face = "bold"),
+                  plot.title = element_text(hjust = 0.5)) +
+            scale_y_discrete(labels = function(x) str_wrap(x, width = 15)) +
+            cat_title_perc() + 
+            cat_ylab_perc() +
+            xlab("Percent (%)")
+      
 
         # generate bins based on input$bins from ui.R
         #x    <- HMDA_WA[, 22]
