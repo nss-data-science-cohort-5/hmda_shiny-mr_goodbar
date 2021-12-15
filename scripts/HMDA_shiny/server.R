@@ -15,32 +15,36 @@ shinyServer(function(input, output) {
     
     lei_county_filter <- reactive({
         if (input$lei == "All" & input$county == "All") {
-            HMDA_WA
+            HMDA_WA %>% 
+                mutate(lei = if_else(lei != input$lei, "other", input$lei))
         }
         else if (input$lei == "All" & input$county != "All") {
             HMDA_WA %>% 
-                mutate(county_code = if_else(county_code != input$county, "other", input$county))
+                mutate(lei = if_else(lei != input$lei, "other", input$lei),
+                       county_code = if_else(county_code != input$county, "other", input$county)) %>% 
+                filter(county_code == input$county)
         }
         else if (input$lei != "All" & input$county == "All") {
             HMDA_WA %>% 
-            mutate(lei = if_else(lei != input$lei, "other", input$lei))
+                mutate(lei = if_else(lei != input$lei, "other", input$lei))
         }
-        else {
+        else if (input$lei != "All" & input$county != "All") {
             HMDA_WA %>% 
-                mutate(lei = if_else(lei != input$lei, "other", input$lei), 
-                       county_code =if_else(county_code != input$county, "other", input$county))
+                mutate(lei = if_else(lei != input$lei, "other", input$lei),
+                       county_code = if_else(county_code != input$county, "other", input$county)) %>% 
+                filter(county_code == input$county)
+            
         }
         
     })
     group_filter <- reactive({
         if(input$category == "Race") {
             lei_county_filter() %>% 
-                filter(derived_race != "Race Not Available") %>% 
                 count(lei, derived_race) %>% 
                 pivot_wider(names_from = derived_race, values_from = n) %>% 
                 replace(is.na(.), 0) %>% 
-                mutate_if(is.numeric, function(x)(x/rowSums(.[2:9])) * 100) %>% 
-                pivot_longer(cols = "2 or more minority races":"Free Form Text Only") %>% 
+                mutate_if(is.numeric, function(x)(x/rowSums(.[2:10])) * 100) %>% 
+                pivot_longer(cols = "2 or more minority races":"Race Not Available") %>% 
                 filter(name != "Free Form Text Only")
              
         }
