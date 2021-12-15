@@ -10,50 +10,40 @@
 library(shiny)
 
 # Define UI for application that draws a histogram
-shinyUI(fluidPage(
-
+shinyUI(
+  fluidPage(
+    
     # Application title
-    titlePanel("Old Faithful Geyser Data"),
-
+    titlePanel("Mr. Goodbar HMDA"),
+    
     # Sidebar with a slider input for number of bins
     sidebarLayout(
-        sidebarPanel(
-            selectInput("lei",
-                        "Lei:",
-                        lei_list
-                        ),
-            selectInput("county",
-                         "County Code:",
-                         county_list
-                        ),
-            selectInput("race",
-                        "Race:",
-                        c("White",
-                          "Native Hawaiian or Other Pacific Islander", 
-                          "Asian", 
-                          'American Indian or Alaska Native',
-                          "Black or African American",
-                          "2 or more minority races",
-                          "Joint")
-                        ),
-            checkboxGroupInput("sex",
-                        h3("Sex:"),
-                        c("Male",
-                          "Female",
-                          "Joint"),
-                        selected = c("Male", "Female", "Joint")
-                        ),
-            selectInput("category",
-                        "Category:",
-                        c("Age",
-                          "Sex",
-                          "Race")),
-                  width = 3
-              ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-            plotOutput("barPlot")
+      sidebarPanel(
+        
+        selectInput("lei",
+                    "Lei:",
+                    lei_list),
+        
+        selectInput("county",
+                    "County Code:",
+                    county_list)
+        ),
+      
+      # Show a plot of the generated distribution
+      mainPanel(
+        tabsetPanel(
+          
+          tabPanel("Race",
+                   plotOutput("racePlot")
+          ),
+          tabPanel("Age",
+                   plotOutput("agePlot")
+          ),
+          tabPanel("Sex",
+                   plotOutput("sexPlot")
+          )
         )
+      )
     )
-))
+  )
+)
