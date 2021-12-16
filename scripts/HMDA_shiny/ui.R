@@ -45,15 +45,16 @@ shinyUI(fluidPage(
                         ),
             selectInput("category",
                         "Category:",
-                        c("Age",
-                          "Sex",
-                          "Race")),
+                        c("Age" = "applicant_age",
+                          "Sex" = "derived_sex",
+                          "Race" = "derived_race")),
                   width = 3
               ),
 
         # Show a plot of the generated distribution
         mainPanel(
-            plotOutput("barPlot")
+            plotOutput("barPlot"),
+            plotOutput("countPlot")
         )
     )
 ))

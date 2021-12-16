@@ -14,31 +14,24 @@ library(shiny)
 shinyServer(function(input, output) {
     
     lei_county_filter <- reactive({
-        if (input$lei == "All" & input$county == "All") {
+        if ((input$lei == "All" & input$county == "All") | (input$lei != "All" & input$county == "All")) {
             HMDA_WA %>% 
                 mutate(lei = if_else(lei != input$lei, "other", input$lei))
         }
-        else if (input$lei == "All" & input$county != "All") {
+        else if ((input$lei == "All" & input$county != "All") | (input$lei != "All" & input$county != "All")) {
             HMDA_WA %>% 
-                mutate(lei = if_else(lei != input$lei, "other", input$lei),
-                       county_code = if_else(county_code != input$county, "other", input$county)) %>% 
+                mutate(lei = if_else(lei != input$lei, "other", input$lei)) %>% 
                 filter(county_code == input$county)
-        }
-        else if (input$lei != "All" & input$county == "All") {
-            HMDA_WA %>% 
-                mutate(lei = if_else(lei != input$lei, "other", input$lei))
-        }
-        else if (input$lei != "All" & input$county != "All") {
-            HMDA_WA %>% 
-                mutate(lei = if_else(lei != input$lei, "other", input$lei),
-                       county_code = if_else(county_code != input$county, "other", input$county)) %>% 
-                filter(county_code == input$county)
-            
         }
         
+        
+        
     })
+    
+    
+    
     group_filter <- reactive({
-        if(input$category == "Race") {
+        if(input$category == "derived_race") {
             lei_county_filter() %>% 
                 count(lei, derived_race) %>% 
                 pivot_wider(names_from = derived_race, values_from = n) %>% 
@@ -46,22 +39,20 @@ shinyServer(function(input, output) {
                 mutate_if(is.numeric, function(x)(x/rowSums(.[2:10])) * 100) %>% 
                 pivot_longer(cols = "2 or more minority races":"Race Not Available") %>% 
                 filter(name != "Free Form Text Only")
-             
+            
         }
-        else if(input$category == "Age") {
-            lei_county_filter() %>% 
-                filter(!applicant_age %in% c("8888", "9999")) %>% 
+        else if(input$category == "applicant_age") {
+            lei_county_filter() %>%
                 count(lei, applicant_age) %>% 
                 pivot_wider(names_from = applicant_age, values_from = n) %>% 
                 replace(is.na(.), 0) %>% 
-                mutate_if(is.numeric, function(x)(x/rowSums(.[2:8]))*100) %>% 
-                pivot_longer(cols = "<25":"65-74") %>% 
-                mutate(name = fct_relevel(name,"<25", "25-34", "35-44", "45-54", "55-64", "65-74", ">74"))
-                
+                mutate_if(is.numeric, function(x)(x/rowSums(.[2:9]))*100) %>% 
+                pivot_longer(cols = "<25":"8888") %>% 
+                mutate(name = fct_relevel(name,"<25", "25-34", "35-44", "45-54", "55-64", "65-74", ">74", "8888"))
+            
         }
-        else if(input$category == "Sex") {
+        else if(input$category == "derived_sex") {
             lei_county_filter() %>% 
-                filter(derived_sex != "Sex Not Available") %>% 
                 count(lei, derived_sex) %>% 
                 pivot_wider(names_from = derived_sex, values_from = n) %>% 
                 mutate_if(is.numeric, function(x)(x/rowSums(.[2:4]))*100)%>% 
@@ -81,7 +72,7 @@ shinyServer(function(input, output) {
             labs(title = "Percent Applicant by Sex: Lei Vs. Competitors")
         }
     })
-   
+    
     cat_ylab_perc <- reactive({
         if(input$category == "Age") {
             ylab("Age")
@@ -93,9 +84,22 @@ shinyServer(function(input, output) {
             ylab("Sex")
         }
     })
-
+    
+    column_reorder <- reactive({
+        if(input$category == "applicant_age") {
+            mutate(applicant_age = fct_relevel(applicant_age,"<25", "25-34", "35-44", "45-54", "55-64", "65-74", ">74", "8888"))
+        }
+        else if(input$category == "derived_sex") {
+            mutate(derived_sex = fct_relevel(derived_sex, "Female", "Male", "Joint"))
+        }
+        else if(input$category == "derived_sex") {
+            mutate(derived_race = fct_relevel(derived_race, str_sort(unique(HMDA_WA$derived_race))))
+        }
+    })
+    
+    
     output$barPlot <- renderPlot({
-      
+        
         group_filter() %>%  
             arrange(desc(name)) %>% 
             ggplot(aes(y = fct_inorder(name), x = value, fill = lei))+
@@ -106,15 +110,35 @@ shinyServer(function(input, output) {
             cat_title_perc() + 
             cat_ylab_perc() +
             xlab("Percent (%)")
-      
-
-        # generate bins based on input$bins from ui.R
-        #x    <- HMDA_WA[, 22]
-        #bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        #hist(x, breaks = bins, col = 'darkgray', border = 'white')
-
+        
+        
     })
-
+    
+    output$countPlot <- renderPlot({
+        
+        other_lei_numb <- HMDA_WA %>% 
+            filter(lei != input$lei, county_code == input$county) %>% 
+            replace(is.na(.), 0) %>%
+            count(lei, !!as.name(input$category))%>% 
+            group_by(!!as.name(input$category)) %>% 
+            summarize(avg_numb_for_cat = mean(n)) %>% 
+            mutate(lei = "Competitors")
+        
+        target_lei_numb <- HMDA_WA %>% 
+            filter(lei == input$lei, county_code == input$county) %>% 
+            replace(is.na(.), 0) %>%
+            count(lei, !!as.name(input$category))%>% 
+            group_by(!!as.name(input$category)) %>% 
+            summarize(avg_numb_for_cat = mean(n)) %>% 
+            mutate(lei = input$lei)
+        
+        count_comp <- full_join(target_lei_numb, other_lei_numb)  
+        
+        count_comp %>% 
+            column_reorder() %>% 
+            ggplot(aes(y=!!as.name(input$category), x = avg_numb_for_cat, fill = lei))) +
+            geom_col(position = "dodge") +
+            scale_y_discrete(limits = rev)
+    })
+    
 })
