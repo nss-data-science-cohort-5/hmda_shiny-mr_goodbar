@@ -16,18 +16,50 @@ shinyServer(function(input, output) {
     lei_county_filter <- reactive({
         if ((input$lei == "All" & input$county == "All") | (input$lei != "All" & input$county == "All")) {
             HMDA_WA %>% 
-                mutate(lei = if_else(lei != input$lei, "other", input$lei))
+                mutate(lei = if_else(lei != input$lei, "Competitors", input$lei))
         }
         else if ((input$lei == "All" & input$county != "All") | (input$lei != "All" & input$county != "All")) {
             HMDA_WA %>% 
-                mutate(lei = if_else(lei != input$lei, "other", input$lei)) %>% 
+                mutate(lei = if_else(lei != input$lei, "Competitors", input$lei)) %>% 
                 filter(county_code == input$county)
         }
-        
-        
-        
     })
     
+    lei_count_filter_other <- reactive({
+        if (input$lei == "All" & input$county == "All") {
+            HMDA_WA 
+        }
+        else if(input$lei != "All" & input$county == "All") {
+            HMDA_WA %>% 
+                filter(lei != input$lei)
+        }
+        else if (input$lei == "All" & input$county != "All") {
+            HMDA_WA %>% 
+                filter(county_code == input$county)
+        }
+        else if(input$lei != "All" & input$county != "All"){
+            HMDA_WA %>% 
+                filter(lei != input$lei, county_code == input$county)
+        }
+    })
+    
+    lei_count_filter_target <- reactive({
+        if (input$lei == "All" & input$county == "All") {
+            HMDA_WA 
+        }
+        else if(input$lei != "All" & input$county == "All") {
+            HMDA_WA %>% 
+                filter(lei == input$lei)
+        }
+        else if (input$lei == "All" & input$county != "All") {
+            HMDA_WA %>% 
+                filter(county_code == input$county)
+        }
+        else if(input$lei != "All" & input$county != "All"){
+            HMDA_WA %>% 
+                filter(lei == input$lei, county_code == input$county)
+        }
+    })
     
     
     group_filter <- reactive({
@@ -62,40 +94,30 @@ shinyServer(function(input, output) {
     })
     
     cat_title_perc <- reactive({
-        if(input$category == "Age") {
+        if(input$category == "applicant_age") {
             labs(title = "Percent Applicant by Age: Lei Vs. Competitors")
         }
-        else if(input$category == "Race") {
+        else if(input$category == "derived_race") {
             labs(title = "Percent Applicant by Race: Lei Vs. Competitors")
         }
-        else if(input$category == "Sex") {
+        else if(input$category == "derived_sex") {
             labs(title = "Percent Applicant by Sex: Lei Vs. Competitors")
         }
     })
     
     cat_ylab_perc <- reactive({
-        if(input$category == "Age") {
+        if(input$category == "applicant_age") {
             ylab("Age")
         }
-        else if(input$category == "Race") {
+        else if(input$category == "derived_race") {
             ylab("Race")
         }
-        else if(input$category == "Sex") {
+        else if(input$category == "derived_sex") {
             ylab("Sex")
         }
     })
     
-    column_reorder <- reactive({
-        if(input$category == "applicant_age") {
-            mutate(applicant_age = fct_relevel(applicant_age,"<25", "25-34", "35-44", "45-54", "55-64", "65-74", ">74", "8888"))
-        }
-        else if(input$category == "derived_sex") {
-            mutate(derived_sex = fct_relevel(derived_sex, "Female", "Male", "Joint"))
-        }
-        else if(input$category == "derived_sex") {
-            mutate(derived_race = fct_relevel(derived_race, str_sort(unique(HMDA_WA$derived_race))))
-        }
-    })
+    
     
     
     output$barPlot <- renderPlot({
@@ -116,16 +138,26 @@ shinyServer(function(input, output) {
     
     output$countPlot <- renderPlot({
         
-        other_lei_numb <- HMDA_WA %>% 
-            filter(lei != input$lei, county_code == input$county) %>% 
+        column_reorder <- function(data, x){
+            if(x == "applicant_age") {
+                mutate(data, applicant_age = fct_relevel(applicant_age,"<25", "25-34", "35-44", "45-54", "55-64", "65-74", ">74", "8888"))
+            }
+            else if(x == "derived_sex") {
+                mutate(data, derived_sex = fct_relevel(derived_sex, "Female", "Male", "Joint"))
+            }
+            else if(x == "derived_sex") {
+                mutate(data, derived_race = fct_relevel(derived_race, str_sort(unique(HMDA_WA$derived_race))))
+            }
+        }
+        
+        other_lei_numb <- lei_count_filter_other() %>% 
             replace(is.na(.), 0) %>%
             count(lei, !!as.name(input$category))%>% 
             group_by(!!as.name(input$category)) %>% 
             summarize(avg_numb_for_cat = mean(n)) %>% 
             mutate(lei = "Competitors")
         
-        target_lei_numb <- HMDA_WA %>% 
-            filter(lei == input$lei, county_code == input$county) %>% 
+        target_lei_numb <- lei_count_filter_target() %>% 
             replace(is.na(.), 0) %>%
             count(lei, !!as.name(input$category))%>% 
             group_by(!!as.name(input$category)) %>% 
@@ -135,10 +167,12 @@ shinyServer(function(input, output) {
         count_comp <- full_join(target_lei_numb, other_lei_numb)  
         
         count_comp %>% 
-            column_reorder() %>% 
-            ggplot(aes(y=!!as.name(input$category), x = avg_numb_for_cat, fill = lei))) +
+            column_reorder(input$category) %>% 
+            ggplot(aes(y=!!as.name(input$category), x = avg_numb_for_cat, fill = lei)) +
             geom_col(position = "dodge") +
-            scale_y_discrete(limits = rev)
+            scale_y_discrete(limits = rev) +
+            cat_ylab_perc() +
+            xlab("Count")
     })
     
 })
