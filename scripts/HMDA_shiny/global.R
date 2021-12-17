@@ -1,8 +1,10 @@
 library(shiny)
 library(tidyverse)
 library(plotly)
+library(dplyr)
 
-HMDA_WA_all <- read_csv("../data/state_WA.csv")
+#C:\Users\cmerr\Documents\Nashville Software School\Projects\hmda_shiny-mr_goodbar\scripts\HMDA_shiny\data
+HMDA_WA_all <- read_csv("data/state_WA.csv")
 
 HMDA_WA <- HMDA_WA_all %>% 
   subset(select = c(activity_year, lei, `derived_msa-md`, state_code, county_code,
@@ -14,7 +16,6 @@ HMDA_WA <- HMDA_WA_all %>%
 
 lei_list <- unique(HMDA_WA$lei)
 lei_list <- append(lei_list, "All")
-#lei_list <- str_order()
+lei_list <- sort(lei_list)
 county_list <- unique(HMDA_WA$county_code)
 county_list <- append(county_list, "All")
-

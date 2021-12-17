@@ -26,7 +26,11 @@ shinyUI(
         
         selectInput("county",
                     "County Code:",
-                    county_list)
+                    county_list),
+        
+        actionButton('debug', "Debug"),
+        
+        width = 2
         ),
       
       # Show a plot of the generated distribution
@@ -34,7 +38,8 @@ shinyUI(
         tabsetPanel(
           
           tabPanel("Race",
-                   plotOutput("racePlot")
+                   plotOutput("racePlot"),
+                   tableOutput("raceTable")
           ),
           tabPanel("Age",
                    plotOutput("agePlot")
