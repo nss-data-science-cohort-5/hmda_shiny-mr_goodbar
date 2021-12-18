@@ -31,3 +31,14 @@ applicant_credit_score_type <- c('Equifax Beacon 5.0'=1,
                                  'Other credit scoring model'=8,
                                  'Not applicable'=9,
                                  'Exempt'=1111)
+
+denial_reason-1 <- c('Debt-to-income ratio'= 1,
+                     'Employment history'=2,
+                     'Credit history'=3,
+                     'Collateral'=4,
+                     'Insufficient cash at downpayment or closing'= 5,
+                     'Unverifiable information'= 6,
+                     'Credit application incomplete'= 7,
+                     'Mortgage insurance denied'=8, 
+                     'Other'=9,
+                     'Not applicable'= 10)
