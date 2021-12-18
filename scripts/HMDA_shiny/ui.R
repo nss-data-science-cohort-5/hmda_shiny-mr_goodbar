@@ -20,13 +20,17 @@ shinyUI(
     sidebarLayout(
       sidebarPanel(
         
-        selectInput("lei",
+        selectizeInput("lei",
                     "Lei:",
-                    lei_list),
+                    choices = lei_list,
+                    selected = c("01KWVG908KE7RKPTNP46"),
+                    multiple = T),
         
-        selectInput("county",
+        selectizeInput("county",
                     "County Code:",
-                    county_list),
+                    choices = county_list,
+                    selected = c("53001"),
+                    multiple = T),
         
         actionButton('debug', "Debug"),
         
@@ -42,10 +46,12 @@ shinyUI(
                    tableOutput("raceTable")
           ),
           tabPanel("Age",
-                   plotOutput("agePlot")
+                   plotOutput("agePlot"),
+                   tableOutput("ageTable")
           ),
           tabPanel("Sex",
-                   plotOutput("sexPlot")
+                   plotOutput("sexPlot"),
+                   tableOutput("sexTable")
           )
         )
       )

@@ -33,7 +33,7 @@ shinyServer(function(input, output) {
         else {
             HMDA_WA %>%
               filter(county_code == input$county) %>%
-                mutate(lei = if_else(lei != input$lei, "other", input$lei))
+                mutate(lei = if_else(lei %in% input$lei, lei, "other"))
         }
         
     })
@@ -91,17 +91,26 @@ shinyServer(function(input, output) {
         count(lei, applicant_age)
     })
     
+    group_filter_age_sort <- reactive({
+      group_filter_age() %>%
+        arrange(parse_number(applicant_age))
+    })
+    
+    unique_group_filter_age_sort <- reactive({
+      c(unique(group_filter_age_sort()[["applicant_age"]]))
+    })
+    
     age_count <- reactive({
-      length(unique(group_filter_age()[["applicant_age"]])) + 1
+      length(unique(group_filter_age_sort()[["applicant_age"]])) + 1
     })
     
     age_graph_info <- reactive({
-      group_filter_age() %>%
+      group_filter_age_sort() %>%
         pivot_wider(names_from = applicant_age, values_from = n) %>% 
         replace(is.na(.), 0) %>% 
         mutate_if(is.numeric, function(x)(x/rowSums(.[2:age_count()])) * 100) %>%
-        pivot_longer(cols = -c("lei")) %>% 
-        filter(name != "Free Form Text Only")
+        pivot_longer(cols = -c("lei")) %>%
+        mutate(name = fct_relevel(name,unique_group_filter_age_sort()))
     })
     
     
@@ -121,7 +130,7 @@ shinyServer(function(input, output) {
         scale_y_discrete(labels = function(x) str_wrap(x, width = 15)) +
         labs(title = "Percent Applicant by Race: Lei Vs. Competitors") +
         ylab("Race\n") +
-        xlab("Percent (%)")
+        xlab("Percent (%)\n")
 
     })
     
@@ -129,7 +138,7 @@ shinyServer(function(input, output) {
       
       age_graph_info() %>%  
         arrange(desc(name)) %>% 
-        ggplot(aes(y = fct_inorder(name), x = value, fill = lei))+
+        ggplot(aes(y = fct_rev(name), x = value, fill = lei))+
         geom_col(position = "dodge") +
         theme(axis.text.x = element_text(face = "bold", size=rel(1.25)),
               axis.text.y = element_text(face = "bold", size=rel(1.25)),
@@ -140,7 +149,7 @@ shinyServer(function(input, output) {
         scale_y_discrete(labels = function(x) str_wrap(x, width = 20)) +
         labs(title = "Percent Applicant by Age: Lei Vs. Competitors") + 
         ylab("Age\n") +
-        xlab("Percent (%)")
+        xlab("Percent (%)\n")
       
     })
     
@@ -159,13 +168,25 @@ shinyServer(function(input, output) {
         scale_y_discrete(labels = function(x) str_wrap(x, width = 15)) +
         labs(title = "Percent Applicant by Sex: Lei Vs. Competitors") + 
         ylab("Sex\n") +
-        xlab("Percent (%)")
+        xlab("Percent (%)\n")
       
     })
     
     output$raceTable <- renderTable({
       group_filter_race() %>%
         pivot_wider(names_from = derived_race, values_from = n) %>% 
+        replace(is.na(.), 0)
+    })
+    
+    output$ageTable <- renderTable({
+      group_filter_age() %>%
+        pivot_wider(names_from = applicant_age, values_from = n) %>% 
+        replace(is.na(.), 0)
+    })
+    
+    output$sexTable <- renderTable({
+      group_filter_age() %>%
+        pivot_wider(names_from = applicant_age, values_from = n) %>% 
         replace(is.na(.), 0)
     })
 
