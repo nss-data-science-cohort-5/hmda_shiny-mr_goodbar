@@ -145,8 +145,10 @@ shinyServer(function(input, output) {
             else if(x == "derived_sex") {
                 mutate(data, derived_sex = fct_relevel(derived_sex, "Female", "Male", "Joint"))
             }
-            else if(x == "derived_sex") {
-                mutate(data, derived_race = fct_relevel(derived_race, str_sort(unique(HMDA_WA$derived_race))))
+            else if(x == "derived_race") {
+                mutate(data, derived_race = fct_relevel(derived_race, "Asian", "American Indian or Alaska Native", 
+                                                        "Black or African American", "Native Hawaiian or Other Pacific Islander",
+                                                        "White", "2 or more minority races", "Joint", "Race Not Available"))
             }
         }
         
@@ -172,7 +174,8 @@ shinyServer(function(input, output) {
             geom_col(position = "dodge") +
             scale_y_discrete(limits = rev) +
             cat_ylab_perc() +
-            xlab("Count")
+            xlab("Count") +
+            scale_y_discrete(labels = function(x) str_wrap(x, width = 15)) 
     })
     
 })
