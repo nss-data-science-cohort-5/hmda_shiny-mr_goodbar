@@ -42,3 +42,15 @@ denial_reason-1 <- c('Debt-to-income ratio'= 1,
                      'Mortgage insurance denied'=8, 
                      'Other'=9,
                      'Not applicable'= 10)
+
+lei_df<-data_all_years %>% 
+  select(lei) %>%
+  unique() 
+  
+lei_name <- read_csv("data_science/hmda_shiny-mr_goodbar/20211218-0000-gleif-goldencopy-lei2-golden-copy.csv") 
+  
+lei_name<-lei_name %>% 
+  select(LEI, Entity.LegalName)
+
+filtered_lei<-merge(lei_df, lei_name, by.x= 'lei', by.y='LEI', all.x= TRUE)
+data_all_years<- merge(data_all_years, filtered_lei, by.x= 'lei', by.y='lei', all.x= TRUE)
