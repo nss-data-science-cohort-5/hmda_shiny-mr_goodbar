@@ -4,8 +4,8 @@ library(plotly)
 library(viridis)
 library(sf)
 library(leaflet)
+library(httr)
 
-#C:\Users\cmerr\Documents\Nashville Software School\Projects\hmda_shiny-mr_goodbar\scripts\HMDA_shiny\data
 HMDA_WA_all <- read_csv("../../data/state_WA.csv")
 
 HMDA_WA <- HMDA_WA_all %>% 
@@ -22,6 +22,7 @@ lei_list <- sort(lei_list)
 county_list <- unique(HMDA_WA$county_code)
 county_list <- c("All",county_list)
 race_list <- unique(HMDA_WA$derived_race)
+
 summaryText = "\nWe developed this app for the purpose of helping Hauser Jones & Sas more easily aid their clients in their compliance with the Home Mortgage Disclosure Act. With this app you are able to use data gathered from the
 HMDA website (https://ffiec.cfpb.gov) and https://www.lei-lookup.com to assess institutions lending practices on  the basis of race, gender, and age in various counties in Washington state between the years 2018-2020.
 This app allows you to filter data by loan type, purchaser type, dwelling type, loan amounts, and reasons for denial as well as visualize with graphs and maps.  We hope this will become an invaluable tool for helping
@@ -30,3 +31,24 @@ For the purposes of this app, the following definitions are for race, age, and s
 Age = age_applicant: The age of the applicant \n
 Race = dericed_race: Single aggregated race categorization derived from applicant/borrower and co-applicant/co-borrower race fields \n
 Sex = derived_sex: Single aggregated sex categorization derived from applicant/borrower and co-applicant/co-borrower sex fields"
+
+# url = 'https://ffiec.cfpb.gov/v2/data-browser-api/view/csv?states=WA&years=2020'
+# 
+# query = list(
+#   'type' = 'lei'
+# ) 
+# 
+# response = GET(url, query=query)
+# 
+# 
+# response$status_code
+# 
+# hmda <- content(response, as = "text") %>% 
+#   read_csv()
+# hmda %>% write_csv('hdma.csv')
+# 
+# data= read_csv('hdma.csv') %>% 
+#   select('lei', 'county_code', 'census_tract', 'derived_race', 'derived_sex', "applicant_age", 'denial_reason-1')
+# 
+# data %>% 
+#   filter(derived_race!='Race Not Available', derived_sex!= "Sex Not Available",applicant_age!= '8888') %>% view()

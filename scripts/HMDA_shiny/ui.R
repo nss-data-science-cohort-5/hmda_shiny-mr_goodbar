@@ -39,16 +39,16 @@ shinyUI(
         tabsetPanel(
           
           tabPanel("Race",
-                   plotOutput("racePlot"),
+                   plotlyOutput("racePlot"),
                    tableOutput("raceTable")
           ),
           
           tabPanel("Age",
-                   plotOutput("agePlot"),
+                   plotlyOutput("agePlot"),
                    tableOutput("ageTable")
           ),
           tabPanel("Sex",
-                   plotOutput("sexPlot"),
+                   plotlyOutput("sexPlot"),
                    tableOutput("sexTable")
           ),
           tabPanel("Map",
