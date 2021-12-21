@@ -75,6 +75,9 @@ shinyUI(
           #                      selected = ">25")
           #          
           # ),
+          tabPanel("LEI Codes",
+                   tableOutput("leiTable")
+          ),
           tabPanel("Summary",
                    verbatimTextOutput("textSummary")
           )

@@ -102,7 +102,7 @@ shinyServer(function(input, output) {
     #handles lei code translation
     group_lei_filter <- reactive({
       leiData %>%
-        mutate(leiData$lei %in% input$lei)
+        filter(leiData$lei %in% input$lei)
     })
     
     
@@ -290,9 +290,9 @@ shinyServer(function(input, output) {
         replace(is.na(.), 0)
     })
     
-    # output$leiTable <- renderTable({
-    #   group_lei_filter()
-    # })
+     output$leiTable <- renderTable({
+       group_lei_filter()
+     })
     
     output$gMap <- renderLeaflet({
       leaflet(value_filter3()) %>% 

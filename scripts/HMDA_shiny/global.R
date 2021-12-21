@@ -6,6 +6,7 @@ library(sf)
 library(leaflet)
 
 HMDA_WA_all <- read_csv("../../data/state_WA.csv")
+leiData <- read_csv("../../data/leiT.csv")
 
 HMDA_WA <- HMDA_WA_all %>% 
   subset(select = c(activity_year, lei, `derived_msa-md`, state_code, county_code,
@@ -31,6 +32,7 @@ For the purposes of this app, the following definitions are for race, age, and s
 Age = age_applicant: The age of the applicant \n
 Race = dericed_race: Single aggregated race categorization derived from applicant/borrower and co-applicant/co-borrower race fields \n
 Sex = derived_sex: Single aggregated sex categorization derived from applicant/borrower and co-applicant/co-borrower sex fields"
+
 
 # url = 'https://ffiec.cfpb.gov/v2/data-browser-api/view/csv?states=WA&years=2020'
 # 
