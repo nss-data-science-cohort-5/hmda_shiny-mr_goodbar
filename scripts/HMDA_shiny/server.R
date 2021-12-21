@@ -85,7 +85,7 @@ shinyServer(function(input, output) {
     
     mytext <- reactive({
       paste(
-        "County: ", value_filter3()$NAME,"<br/>",
+        "County: ", value_filter3()$NAME," ",
         "Percent: ", round(value_filter3()$value, 2), sep = "") %>% 
         sapply(htmltools::HTML)
     })
@@ -182,16 +182,16 @@ shinyServer(function(input, output) {
     
     
     #This section handles the plots
-    output$racePlot <- renderPlot({
+    output$racePlot <- renderPlotly({
       race_graph_info() %>%  
             arrange(desc(name)) %>% 
             ggplot(aes(y = fct_inorder(name), x = value, fill = lei))+
             geom_col(position = "dodge") +
-            theme(axis.text.x = element_text(face = "bold", size=rel(1.25)),
-                  axis.text.y = element_text(face = "bold", size=rel(1.25)),
-                  axis.title = element_text(size=rel(1.50)),
-                  legend.text = element_text(size=rel(1.50)),
-                  legend.title = element_text(size=rel(1.50)),
+            theme(axis.text.x = element_text(face = "bold", size=rel(1.0)),
+                  axis.text.y = element_text(face = "bold", size=rel(1.0)),
+                  axis.title = element_text(size=rel(1.2)),
+                  legend.text = element_text(size=rel(.9)),
+                  legend.title = element_text(size=rel(.9)),
                   plot.title = element_text(hjust = 0.5, size=rel(1.5))) +
         scale_y_discrete(labels = function(x) str_wrap(x, width = 15)) +
         labs(title = "Percent Applicant by Race: Lei Vs. Competitors") +
@@ -200,36 +200,35 @@ shinyServer(function(input, output) {
 
     })
     
-    output$agePlot <- renderPlot({
+    output$agePlot <- renderPlotly({
       
       age_graph_info() %>%  
         arrange(desc(name)) %>% 
-        ggplot(aes(y = fct_rev(name), x = value, fill = lei))+
+        ggplot(aes(y = fct_rev(name), x = value, fill = lei)) +
         geom_col(position = "dodge") +
-        theme(axis.text.x = element_text(face = "bold", size=rel(1.25)),
-              axis.text.y = element_text(face = "bold", size=rel(1.25)),
-              axis.title = element_text(size=rel(1.50)),
-              legend.text = element_text(size=rel(1.50)),
-              legend.title = element_text(size=rel(1.50)),
+        theme(axis.text.x = element_text(face = "bold", size=rel(1.0)),
+              axis.text.y = element_text(face = "bold", size=rel(1.0)),
+              axis.title = element_text(size=rel(1.2)),
+              legend.text = element_text(size=rel(1.0)),
+              legend.title = element_text(size=rel(1.0)),
               plot.title = element_text(hjust = 0.5, size=rel(1.5))) +
         scale_y_discrete(labels = function(x) str_wrap(x, width = 20)) +
         labs(title = "Percent Applicant by Age: Lei Vs. Competitors") + 
         ylab("Age\n") +
         xlab("Percent (%)\n")
-      
     })
     
-    output$sexPlot <- renderPlot({
+    output$sexPlot <- renderPlotly({
       
       sex_graph_info() %>%  
         arrange(desc(name)) %>% 
         ggplot(aes(y = fct_inorder(name), x = value, fill = lei))+
         geom_col(position = "dodge") +
-        theme(axis.text.x = element_text(face = "bold", size=rel(1.25)),
-              axis.text.y = element_text(face = "bold", size=rel(1.25)),
-              axis.title = element_text(size=rel(1.50)),
-              legend.text = element_text(size=rel(1.50)),
-              legend.title = element_text(size=rel(1.50)),
+        theme(axis.text.x = element_text(face = "bold", size=rel(1.0)),
+              axis.text.y = element_text(face = "bold", size=rel(1.0)),
+              axis.title = element_text(size=rel(1.2)),
+              legend.text = element_text(size=rel(1.0)),
+              legend.title = element_text(size=rel(1.0)),
               plot.title = element_text(hjust = 0.5, size=rel(1.5))) +
         scale_y_discrete(labels = function(x) str_wrap(x, width = 15)) +
         labs(title = "Percent Applicant by Sex: Lei Vs. Competitors") + 
