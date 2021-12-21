@@ -7,53 +7,66 @@
 #    http://shiny.rstudio.com/
 #
 
-library(shiny)
 
 # Define UI for application that draws a histogram
-shinyUI(fluidPage(
-
+shinyUI(
+  fluidPage(
+    
     # Application title
-    titlePanel("Old Faithful Geyser Data"),
-
+    titlePanel("Mr. Goodbar HMDA"),
+    
     # Sidebar with a slider input for number of bins
     sidebarLayout(
-        sidebarPanel(
-            selectInput("lei",
-                        "Lei:",
-                        lei_list
-                        ),
-            selectInput("county",
-                         "County Code:",
-                         county_list
-                        ),
-            selectInput("race",
-                        "Race:",
-                        c("White",
-                          "Native Hawaiian or Other Pacific Islander", 
-                          "Asian", 
-                          'American Indian or Alaska Native',
-                          "Black or African American",
-                          "2 or more minority races",
-                          "Joint")
-                        ),
-            checkboxGroupInput("sex",
-                        h3("Sex:"),
-                        c("Male",
-                          "Female",
-                          "Joint"),
-                        selected = c("Male", "Female", "Joint")
-                        ),
-            selectInput("category",
-                        "Category:",
-                        c("Age",
-                          "Sex",
-                          "Race")),
-                  width = 3
-              ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-            plotOutput("barPlot")
+      sidebarPanel(
+        
+        selectizeInput("lei",
+                       "Lei:",
+                       choices = lei_list,
+                       selected = c("01KWVG908KE7RKPTNP46"),
+                       multiple = T),
+        
+        selectizeInput("county",
+                       "County Code:",
+                       choices = county_list,
+                       selected = c("53001"),
+                       multiple = T),
+        
+        width = 2
+      ),
+      
+      # Show a plot of the generated distribution
+      mainPanel(
+        tabsetPanel(
+          
+          tabPanel("Race",
+                   plotOutput("racePlot"),
+                   tableOutput("raceTable")
+          ),
+          
+          tabPanel("Age",
+                   plotOutput("agePlot"),
+                   tableOutput("ageTable")
+          ),
+          tabPanel("Sex",
+                   plotOutput("sexPlot"),
+                   tableOutput("sexTable")
+          ),
+          tabPanel("Map",
+                   leafletOutput("gMap"),
+                   selectInput("mapRace",
+                               "Map Race",
+                               choices = race_list,
+                               selected = "Asian"),
+                   selectInput("leiMap",
+                               "LEI for Map",
+                               choices = lei_list,
+                               selected = "01KWVG908KE7RKPTNP46")
+          ),
+          tabPanel("Summary",
+                   verbatimTextOutput("textSummary")
+          )
         )
+      )
     )
-))
+  )
+)
