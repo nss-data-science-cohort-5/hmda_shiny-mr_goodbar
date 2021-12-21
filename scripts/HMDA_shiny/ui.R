@@ -7,7 +7,6 @@
 #    http://shiny.rstudio.com/
 #
 
-library(shiny)
 
 # Define UI for application that draws a histogram
 shinyUI(
@@ -32,8 +31,6 @@ shinyUI(
                     selected = c("53001"),
                     multiple = T),
         
-        actionButton('debug', "Debug"),
-        
         width = 2
         ),
       
@@ -52,10 +49,18 @@ shinyUI(
           tabPanel("Sex",
                    plotOutput("sexPlot"),
                    tableOutput("sexTable")
+          ),
+          tabPanel("Map",
+                   leafletOutput("gMap"),
+                   selectInput("mapRace",
+                               "Map Race",
+                               choices = race_list,
+                               selected = "Asian"),
+                   selectInput("leiMap",
+                               "LEI for Map",
+                               choices = lei_list,
+                               selected = "01KWVG908KE7RKPTNP46")
           )
-          #tabPanel("Map",
-                   #plotlyOutput("gMap")
-          #)
         )
       )
     )

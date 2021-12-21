@@ -5,6 +5,8 @@ library(dplyr)
 library(readr)
 library(viridis)
 library(sf)
+library(ggplot2)
+library(leaflet)
 
 #C:\Users\cmerr\Documents\Nashville Software School\Projects\hmda_shiny-mr_goodbar\scripts\HMDA_shiny\data
 HMDA_WA_all <- read_csv("data/state_WA.csv")
@@ -22,3 +24,4 @@ lei_list <- c("All",lei_list)
 lei_list <- sort(lei_list)
 county_list <- unique(HMDA_WA$county_code)
 county_list <- c("All",county_list)
+race_list <- unique(HMDA_WA$derived_race)

@@ -7,9 +7,6 @@
 #    http://shiny.rstudio.com/
 #
 
-library(shiny)
-library(viridis)
-
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
@@ -59,17 +56,44 @@ shinyServer(function(input, output) {
     WA_counties <- WA_counties %>% 
       select(-c(STATE, COUNTY, ...1,))
     
-    value_filter <- HMDA_WA %>% 
-      count(county_code, derived_race) %>% 
-      filter(!is.na(county_code))%>% 
-      pivot_wider(names_from = derived_race, values_from = n) %>% 
-      replace(is.na(.), 0) %>% 
-      mutate_if(is.numeric, function(x)(x/rowSums(.[2:10])) * 100) %>% 
-      pivot_longer(!county_code) %>%
-      filter(name == "Asian")
+    value_filter1 <- reactive({
+      HMDA_WA %>%
+        filter(lei == input$leiMap) %>%
+        count(county_code, derived_race) %>%
+        filter(!is.na(county_code)) %>%
+        pivot_wider(names_from = derived_race, values_from = n) %>%
+        replace(is.na(.), 0) %>%
+        mutate_if(is.numeric, function(x)(x/rowSums(.[2:9])) * 100) %>%
+        pivot_longer(!county_code) %>%
+        filter(name == input$mapRace)
+    })
     
-    #value_filter <- left_join(WA_counties, value_filter)
+    value_filter2 <- reactive({
+      left_join(WA_counties, value_filter1())
+    })
     
+    
+    value_filter3 <- reactive({
+      value_filter2() %>% 
+        replace_na(list(name = input$mapRace, value = 0))
+      })
+    
+    
+    mytext <- reactive({
+      paste(
+        "County: ", value_filter3()$NAME,"<br/>",
+        "Percent: ", round(value_filter3()$value, 2), sep = "") %>% 
+        lapply(htmltools::HTML)
+    })
+    
+    mybins <- reactive({
+      c(0, 1, 2, 4, 8, 16, 25, 50, 75, 100)
+    })
+    
+    
+    mypalette <- reactive({
+      colorBin(palette="YlOrBr", domain = value_filter3()$value, na.color="transparent", bins=mybins())
+    })
     
     
     
@@ -227,12 +251,25 @@ shinyServer(function(input, output) {
         replace(is.na(.), 0)
     })
     
-    #output$gMap <- renderPlot({
-      #value_filter %>% 
-        #ggplot(aes(fill = value)) +
-        #geom_sf() +
-        #theme_void() +
-        #scale_fill_viridis(option = "cividis")
-    #})
+    output$gMap <- renderLeaflet({
+      leaflet(value_filter3()) %>% 
+        addTiles() %>% 
+        addPolygons(fillColor = ~mypalette()(value), 
+                    stroke = FALSE, 
+                    fillOpacity = 0.8, 
+                    smoothFactor = 0.5,
+                    color = "white", 
+                    weight = 0.3,
+                    label = mytext(),
+                    labelOptions = labelOptions(
+                      style = list("font-weight" = "normal", 
+                                   padding = "3px 8px"),
+                      textsize = "13.px",
+                      direction = "auto"
+                    )
+        ) %>% 
+        addLegend(pal = mypalette(), values = ~value, opacity = 0.9, title = "Applicants (%)",
+                  position = "bottomleft")
+    })
 
 })
