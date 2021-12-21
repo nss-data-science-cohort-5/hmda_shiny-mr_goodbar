@@ -99,6 +99,11 @@ shinyServer(function(input, output) {
       colorBin(palette="YlOrBr", domain = value_filter3()$value, na.color="transparent", bins=mybins())
     })
     
+    #handles lei code translation
+    group_lei_filter <- reactive({
+      leiData %>%
+        mutate(leiData$lei %in% input$lei)
+    })
     
     
     
@@ -180,6 +185,36 @@ shinyServer(function(input, output) {
     })
     
     
+    # avg_loan_race <- reactive({
+    #   HMDA_WA %>% 
+    #     mutate(derived_race = if_else(derived_race != "Asian", "other", "Asian"))
+    # })
+    # 
+    # avg_loan_race_plot <- renderPlot({
+    #   avg_loan_race() %>%
+    #     ggplot(aes(x = loan_amount, after_stat(density), color = derived_race, fill = derived_race)) +
+    #     geom_histogram(alpha=0.5, position = "identity", bins = 50, size=1) +
+    #     scale_color_brewer(palette = "Dark2") +
+    #     scale_fill_brewer(palette = "Dark2") +
+    #     scale_x_log10() 
+    # })
+    # 
+    # 
+    # avg_loan_age <- reactive({
+    #   HMDA_WA %>% 
+    #     mutate(applicant_age = if_else(derived_race != input$avgAge, "other", input$avgAge))
+    # })
+    # 
+    # avg_loan_age_plot <- renderPlot({
+    #   avg_loan_age() %>%
+    #     ggplot(aes(x = loan_amount, after_stat(density), color = applicant_age, fill = applicant_age)) +
+    #     geom_histogram(alpha=0.5, position = "identity", bins = 50, size=1) +
+    #     scale_color_brewer(palette = "Dark2") +
+    #     scale_fill_brewer(palette = "Dark2") +
+    #     scale_x_log10() 
+    # })
+    
+    
     
     #This section handles the plots
     output$racePlot <- renderPlotly({
@@ -190,8 +225,8 @@ shinyServer(function(input, output) {
             theme(axis.text.x = element_text(face = "bold", size=rel(1.0)),
                   axis.text.y = element_text(face = "bold", size=rel(1.0)),
                   axis.title = element_text(size=rel(1.2)),
-                  legend.text = element_text(size=rel(.9)),
-                  legend.title = element_text(size=rel(.9)),
+                  legend.text = element_text(size=rel(.8)),
+                  legend.title = element_text(size=rel(.8)),
                   plot.title = element_text(hjust = 0.5, size=rel(1.5))) +
         scale_y_discrete(labels = function(x) str_wrap(x, width = 15)) +
         labs(title = "Percent Applicant by Race: Lei Vs. Competitors") +
@@ -254,6 +289,10 @@ shinyServer(function(input, output) {
         pivot_wider(names_from = derived_sex, values_from = n) %>% 
         replace(is.na(.), 0)
     })
+    
+    # output$leiTable <- renderTable({
+    #   group_lei_filter()
+    # })
     
     output$gMap <- renderLeaflet({
       leaflet(value_filter3()) %>% 

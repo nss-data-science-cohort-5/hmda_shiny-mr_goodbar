@@ -62,6 +62,19 @@ shinyUI(
                                choices = lei_list,
                                selected = "01KWVG908KE7RKPTNP46")
           ),
+          # tabPanel("Mean Loan",
+          #          plotOutput("avg_loan_race_plot"),
+          #          plotOutput("avg_loan_age_plot"),
+          #          selectInput("avgRace",
+          #                      "Race",
+          #                      choices = race_list,
+          #                      selected = "Asian"),
+          #          selectInput("avgAge",
+          #                      "Age",
+          #                      choices = age_list,
+          #                      selected = ">25")
+          #          
+          # ),
           tabPanel("Summary",
                    verbatimTextOutput("textSummary")
           )

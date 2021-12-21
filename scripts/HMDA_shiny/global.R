@@ -4,7 +4,6 @@ library(plotly)
 library(viridis)
 library(sf)
 library(leaflet)
-library(httr)
 
 HMDA_WA_all <- read_csv("../../data/state_WA.csv")
 
@@ -22,6 +21,7 @@ lei_list <- sort(lei_list)
 county_list <- unique(HMDA_WA$county_code)
 county_list <- c("All",county_list)
 race_list <- unique(HMDA_WA$derived_race)
+age_list <- unique(HMDA_WA$applicant_age)
 
 summaryText = "\nWe developed this app for the purpose of helping Hauser Jones & Sas more easily aid their clients in their compliance with the Home Mortgage Disclosure Act. With this app you are able to use data gathered from the
 HMDA website (https://ffiec.cfpb.gov) and https://www.lei-lookup.com to assess institutions lending practices on  the basis of race, gender, and age in various counties in Washington state between the years 2018-2020.
