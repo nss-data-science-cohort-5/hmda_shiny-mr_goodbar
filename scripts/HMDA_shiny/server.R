@@ -17,14 +17,14 @@ shinyServer(function(input, output) {
   
     
     lei_county_filter <- reactive({
-        if (input$lei == "All" & input$county == "All") {
+        if ("All" %in% input$lei & "All" %in% input$county) {
             HMDA_WA
         }
-        else if (input$lei == "All" & input$county != "All") {
+        else if ("All" %in% input$lei & !("All" %in% input$county)) {
             HMDA_WA %>% 
               mutate(county_code = if_else(county_code != input$county, "other", input$county))
         }
-        else if (input$lei != "All" & input$county == "All") {
+        else if (!("All" %in% input$lei) & "All" %in% input$county) {
             HMDA_WA %>%
               mutate(lei = if_else(lei != input$lei, "other", input$lei))
         }
@@ -34,6 +34,10 @@ shinyServer(function(input, output) {
                 mutate(lei = if_else(lei %in% input$lei, lei, "other"))
         }
         
+    })
+    
+    output$textSummary <- renderText({
+      summaryText
     })
     
     
@@ -83,7 +87,7 @@ shinyServer(function(input, output) {
       paste(
         "County: ", value_filter3()$NAME,"<br/>",
         "Percent: ", round(value_filter3()$value, 2), sep = "") %>% 
-        lapply(htmltools::HTML)
+        sapply(htmltools::HTML)
     })
     
     mybins <- reactive({

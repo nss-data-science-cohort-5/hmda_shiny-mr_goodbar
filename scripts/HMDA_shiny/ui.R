@@ -20,19 +20,19 @@ shinyUI(
       sidebarPanel(
         
         selectizeInput("lei",
-                    "Lei:",
-                    choices = lei_list,
-                    selected = c("01KWVG908KE7RKPTNP46"),
-                    multiple = T),
+                       "Lei:",
+                       choices = lei_list,
+                       selected = c("01KWVG908KE7RKPTNP46"),
+                       multiple = T),
         
         selectizeInput("county",
-                    "County Code:",
-                    choices = county_list,
-                    selected = c("53001"),
-                    multiple = T),
+                       "County Code:",
+                       choices = county_list,
+                       selected = c("53001"),
+                       multiple = T),
         
         width = 2
-        ),
+      ),
       
       # Show a plot of the generated distribution
       mainPanel(
@@ -42,6 +42,7 @@ shinyUI(
                    plotOutput("racePlot"),
                    tableOutput("raceTable")
           ),
+          
           tabPanel("Age",
                    plotOutput("agePlot"),
                    tableOutput("ageTable")
@@ -60,6 +61,9 @@ shinyUI(
                                "LEI for Map",
                                choices = lei_list,
                                selected = "01KWVG908KE7RKPTNP46")
+          ),
+          tabPanel("Summary",
+                   verbatimTextOutput("textSummary")
           )
         )
       )
