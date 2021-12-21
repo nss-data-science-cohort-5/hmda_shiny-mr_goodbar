@@ -6,7 +6,7 @@ library(sf)
 library(leaflet)
 
 #C:\Users\cmerr\Documents\Nashville Software School\Projects\hmda_shiny-mr_goodbar\scripts\HMDA_shiny\data
-HMDA_WA_all <- read_csv("data/state_WA.csv")
+HMDA_WA_all <- read_csv("../../data/state_WA.csv")
 
 HMDA_WA <- HMDA_WA_all %>% 
   subset(select = c(activity_year, lei, `derived_msa-md`, state_code, county_code,

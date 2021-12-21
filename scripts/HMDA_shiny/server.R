@@ -30,7 +30,7 @@ shinyServer(function(input, output) {
         }
         else {
             HMDA_WA %>%
-              filter(county_code == input$county) %>%
+              filter(county_code %in% input$county) %>%
                 mutate(lei = if_else(lei %in% input$lei, lei, "other"))
         }
         
@@ -48,7 +48,7 @@ shinyServer(function(input, output) {
     WA_counties <- counties %>% 
       filter(STATE == "53")
     
-    county_code_list <- read_csv("data/us_county_codes.csv")
+    county_code_list <- read_csv("../../data/us_county_codes.csv")
     
     county_code_list <- county_code_list %>% 
       rename("NAME" = "County or equivalent", "county_code" = "FIPS") %>% 
@@ -106,6 +106,7 @@ shinyServer(function(input, output) {
     group_filter_race <- reactive({
       lei_county_filter() %>%
         filter(derived_race != "Race Not Available") %>%
+        filter(derived_race != "Free Form Text Only") %>%
         count(lei, derived_race) %>%
         arrange(derived_race)
     })
