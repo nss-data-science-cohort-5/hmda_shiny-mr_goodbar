@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library(viridis)
 
 
 # Define server logic required to draw a histogram
@@ -39,12 +40,46 @@ shinyServer(function(input, output) {
     })
     
     
+    url <- "https://eric.clst.org/assets/wiki/uploads/Stuff/gz_2010_us_050_00_5m.json"
+    
+    counties <- read_sf(url)
+    
+    WA_counties <- counties %>% 
+      filter(STATE == "53")
+    
+    county_code_list <- read_csv("data/us_county_codes.csv")
+    
+    county_code_list <- county_code_list %>% 
+      rename("NAME" = "County or equivalent", "county_code" = "FIPS") %>% 
+      mutate(across(county_code, as.character)) %>% 
+      filter(`State or equivalent` == "Washington") 
+    
+    WA_counties <- left_join(WA_counties, county_code_list)
+    
+    WA_counties <- WA_counties %>% 
+      select(-c(STATE, COUNTY, ...1,))
+    
+    value_filter <- HMDA_WA %>% 
+      count(county_code, derived_race) %>% 
+      filter(!is.na(county_code))%>% 
+      pivot_wider(names_from = derived_race, values_from = n) %>% 
+      replace(is.na(.), 0) %>% 
+      mutate_if(is.numeric, function(x)(x/rowSums(.[2:10])) * 100) %>% 
+      pivot_longer(!county_code) %>%
+      filter(name == "Asian")
+    
+    #value_filter <- left_join(WA_counties, value_filter)
+    
+    
+    
+    
     
     #This section handles the race filters
     group_filter_race <- reactive({
-      lei_county_filter() %>% 
-                filter(derived_race != "Race Not Available") %>% 
-                count(lei, derived_race)
+      lei_county_filter() %>%
+        filter(derived_race != "Race Not Available") %>%
+        count(lei, derived_race) %>%
+        arrange(derived_race)
     })
     
     race_count <- reactive({
@@ -66,7 +101,8 @@ shinyServer(function(input, output) {
     group_filter_sex <- reactive({
       lei_county_filter() %>% 
         filter(derived_sex != "Sex Not Available") %>% 
-        count(lei, derived_sex)
+        count(lei, derived_sex) %>%
+        arrange(derived_sex)
     })
     
     sex_count <- reactive({
@@ -96,6 +132,7 @@ shinyServer(function(input, output) {
         arrange(parse_number(applicant_age))
     })
     
+    #This orders the age for the graph.
     unique_group_filter_age_sort <- reactive({
       c(unique(group_filter_age_sort()[["applicant_age"]]))
     })
@@ -185,9 +222,17 @@ shinyServer(function(input, output) {
     })
     
     output$sexTable <- renderTable({
-      group_filter_age() %>%
-        pivot_wider(names_from = applicant_age, values_from = n) %>% 
+      group_filter_sex() %>%
+        pivot_wider(names_from = derived_sex, values_from = n) %>% 
         replace(is.na(.), 0)
     })
+    
+    #output$gMap <- renderPlot({
+      #value_filter %>% 
+        #ggplot(aes(fill = value)) +
+        #geom_sf() +
+        #theme_void() +
+        #scale_fill_viridis(option = "cividis")
+    #})
 
 })

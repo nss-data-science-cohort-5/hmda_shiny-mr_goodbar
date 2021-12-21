@@ -2,6 +2,9 @@ library(shiny)
 library(tidyverse)
 library(plotly)
 library(dplyr)
+library(readr)
+library(viridis)
+library(sf)
 
 #C:\Users\cmerr\Documents\Nashville Software School\Projects\hmda_shiny-mr_goodbar\scripts\HMDA_shiny\data
 HMDA_WA_all <- read_csv("data/state_WA.csv")
@@ -15,7 +18,7 @@ HMDA_WA <- HMDA_WA_all %>%
   transform(property_value = as.numeric(property_value), county_code = as.character(county_code))
 
 lei_list <- unique(HMDA_WA$lei)
-lei_list <- append(lei_list, "All")
+lei_list <- c("All",lei_list)
 lei_list <- sort(lei_list)
 county_list <- unique(HMDA_WA$county_code)
-county_list <- append(county_list, "All")
+county_list <- c("All",county_list)

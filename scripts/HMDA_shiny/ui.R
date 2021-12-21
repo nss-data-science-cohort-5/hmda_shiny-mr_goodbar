@@ -53,6 +53,9 @@ shinyUI(
                    plotOutput("sexPlot"),
                    tableOutput("sexTable")
           )
+          #tabPanel("Map",
+                   #plotlyOutput("gMap")
+          #)
         )
       )
     )
