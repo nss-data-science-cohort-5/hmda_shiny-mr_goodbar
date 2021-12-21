@@ -16,7 +16,7 @@ HMDA_WA <- HMDA_WA_all %>%
 
 lei_list <- unique(HMDA_WA$lei)
 lei_list <- append(lei_list, "All")
-#lei_list <- str_order()
+
 county_list <- unique(HMDA_WA$county_code)
 county_list <- append(county_list, "All")
 
@@ -48,58 +48,48 @@ WA_counties <- WA_counties %>%
     select(-c(STATE, COUNTY, ...1,))
 
 value_filter <- HMDA_WA %>% 
+    filter(lei == "54930021WPEXNHYZUL09") %>% 
     count(county_code, derived_race) %>% 
     filter(!is.na(county_code))%>% 
     pivot_wider(names_from = derived_race, values_from = n) %>% 
     replace(is.na(.), 0) %>% 
-    mutate_if(is.numeric, function(x)(x/rowSums(.[2:10])) * 100) %>% 
+    mutate_if(is.numeric, function(x)(x/rowSums(.[2:9])) * 100) %>% 
     pivot_longer(!county_code) %>%
     filter(name == "Asian")
 
 value_filter <- left_join(WA_counties, value_filter)
-value_filter
 
-library(viridis)
-g <-value_filter %>% 
-    ggplot(aes(fill = value)) +
-    geom_sf() +
-    theme_void() +
-    scale_fill_viridis(option = "cividis")
+value_filter <- value_filter %>% 
+    replace_na(list(name = "Asian", value = 0))
 
-ggplotly(g)
-
-value_filter %>% 
-    ggplot(aes(x = county_code, y = value)) +
-    geom_col()
-
-value_filter %>% 
-    plot_ly(type = "choropleth", color = ~value, name=~value)
 
 mytext <- paste(
     "County: ", value_filter$NAME,"<br/>",
     "Percent: ", round(value_filter$value, 2), sep = "") %>% 
     lapply(htmltools::HTML)
 
-
-mypalette <- colorQuantile(palette="YlOrBr", domain = value_filter$value, na.color="transparent")
-
+mybins <- c(0, 1, 2, 4, 8, 16, 25, 50, 75, 100)
+mypalette <- colorBin(palette="YlOrBr", domain = value_filter$value, na.color="transparent", bins=mybins)
+value_filter_nest <- subset()
 leaflet(value_filter) %>% 
     addTiles() %>% 
-    addPolygons(fillColor = ~mypalette(value), stroke = FALSE, fillOpacity = 0.5, smoothFactor = 0.5,
-                color = "white", weight = 0.3,
+    addPolygons(fillColor = ~mypalette(value),
+                highlightOptions = highlightOptions(color = "black", weight = 2, bringToFront = TRUE),
+                stroke = FALSE, 
+                fillOpacity = 0.8, 
+                smoothFactor = 0.5,
+                color = "white", 
+                weight = 0.3,
                 label = mytext,
                 labelOptions = labelOptions(
-                    style = list("font-weight" = "normal", padding = "3px 8px"),
+                    style = list("font-weight" = "normal", 
+                                 padding = "3px 8px"),
                     textsize = "13.px",
                     direction = "auto"
-                ))
+                )
+    ) %>% 
+    addLegend(pal = mypalette, values = ~value, opacity = 0.9, title = "Applicants (%)",
+              position = "bottomleft")
 
-HMDA_WA %>% 
-    count(county_code, derived_race) %>% 
-    filter(!is.na(county_code))%>% 
-    pivot_wider(names_from = derived_race, values_from = n) %>% 
-    replace(is.na(.), 0) %>% 
-    mutate_if(is.numeric, function(x)(x/rowSums(.[2:10])) * 100) %>% 
-    pivot_longer(!county_code) %>%
-    filter(name == "Asian") 
+
 
